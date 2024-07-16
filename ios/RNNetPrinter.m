@@ -17,10 +17,6 @@
 NSString *const EVENT_SCANNER_RESOLVED = @"scannerResolved";
 NSString *const EVENT_SCANNER_RUNNING = @"scannerRunning";
 
-@interface PrivateIP : NSObject
-
-@end
-
 @implementation RNNetPrinter
 
 - (dispatch_queue_t)methodQueue
@@ -57,8 +53,6 @@ RCT_EXPORT_METHOD(getDeviceList:(NSString *)prefixPrinterIp
             success:(RCTResponseSenderBlock)successCallback
             fail:(RCTResponseSenderBlock)errorCallback {
     @try {
-
-        PrivateIP *privateIP = [[PrivateIP alloc]init];
         is_scanning = YES;
         is_need_stop_scanning = NO;
         [self sendEventWithName:EVENT_SCANNER_RUNNING body:@YES];
