@@ -17,7 +17,7 @@ RCT_EXPORT_METHOD(init:(RCTPromiseResolveBlock)resolve
     @try {
         _printerArray = [NSMutableArray new];
         m_printer = [[NSObject alloc] init];
-        resolve(@[@"Init successful"]);
+        resolve(@"Init successful");
     } @catch (NSException *exception) {
         reject(exception.name, exception.reason, nil);
     }
@@ -36,7 +36,7 @@ RCT_EXPORT_METHOD(getDeviceList:(RCTPromiseResolveBlock)resolve
             }];
             NSMutableArray*uniquearray = (NSMutableArray *)[[NSSet setWithArray:mapped] allObjects];
             [[PrinterSDK defaultPrinterSDK] stopScanPrinters];
-            resolve(@[uniquearray]);
+            resolve(uniquearray);
         }];
     } @catch (NSException *exception) {
         reject(exception.name, exception.reason, nil);
@@ -64,7 +64,8 @@ RCT_EXPORT_METHOD(connectPrinter:(NSString *)inner_mac_address
             [[PrinterSDK defaultPrinterSDK] connectBT:selectedPrinter];
             // [[NSNotificationCenter defaultCenter] postNotificationName:@"BLEPrinterConnected" object:nil];
             m_printer = selectedPrinter;
-            resolve(@[[NSString stringWithFormat:@"Connected to printer %@", selectedPrinter.name]]);
+            NSString *msg = [@"Connecting to printer " stringByAppendingString:selectedPrinter.name];
+            resolve(msg);
         } else {
             [NSException raise:@"Invalid connection" format:@"connectPrinter: Can't connect to printer %@", inner_mac_address];
         }
@@ -102,7 +103,7 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
                 cut ? [[PrinterSDK defaultPrinterSDK] cutPaper] : nil;
             }
         }
-        resolve(@[@true]);
+        resolve(@true);
     } @catch (NSException *exception) {
         reject(exception.name, exception.reason, nil);
     }
@@ -184,7 +185,7 @@ RCT_EXPORT_METHOD(closeConn:(RCTPromiseResolveBlock)resolve
     @try {
         m_printer = nil;
         [[PrinterSDK defaultPrinterSDK] disconnect];
-        resolve(@[@true]);
+        resolve(@true);
     } @catch (NSException *exception) {
         // NSLog(@"%@", exception.reason);
         reject(exception.name, exception.reason, nil);
