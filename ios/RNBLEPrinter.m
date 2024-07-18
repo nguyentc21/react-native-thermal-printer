@@ -12,21 +12,21 @@
 
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(init:(RCTResponseSenderBlock)successCallback
-                  fail:(RCTResponseSenderBlock)errorCallback) {
+RCT_EXPORT_METHOD(init
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         _printerArray = [NSMutableArray new];
         m_printer = [[NSObject alloc] init];
-        // API MISUSE: <CBCentralManager> can only accept this command while in the powered on state
-        // [[PrinterSDK defaultPrinterSDK] scanPrintersWithCompletion:^(Printer* printer){}];
-        successCallback(@[@"Init successful"]);
+        resolve(@[@"Init successful"]);
     } @catch (NSException *exception) {
-        errorCallback(@[@"No bluetooth adapter available"]);
+        reject(@[exception.reason]);
     }
 }
 
-RCT_EXPORT_METHOD(getDeviceList:(RCTResponseSenderBlock)successCallback
-                  fail:(RCTResponseSenderBlock)errorCallback) {
+RCT_EXPORT_METHOD(getDeviceList
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         !_printerArray ? [NSException raise:@"Null pointer exception" format:@"Must call init function first"] : nil;
         [[PrinterSDK defaultPrinterSDK] scanPrintersWithCompletion:^(Printer* printer){
@@ -38,10 +38,10 @@ RCT_EXPORT_METHOD(getDeviceList:(RCTResponseSenderBlock)successCallback
             }];
             NSMutableArray*uniquearray = (NSMutableArray *)[[NSSet setWithArray:mapped] allObjects];
             [[PrinterSDK defaultPrinterSDK] stopScanPrinters];
-            successCallback(@[uniquearray]);
+            resolve(@[uniquearray]);
         }];
     } @catch (NSException *exception) {
-        errorCallback(@[exception.reason]);
+        reject(@[exception.reason]);
     }
 }
 RCT_EXPORT_METHOD(stopScan) {
@@ -49,8 +49,8 @@ RCT_EXPORT_METHOD(stopScan) {
 }
 
 RCT_EXPORT_METHOD(connectPrinter:(NSString *)inner_mac_address
-                  success:(RCTResponseSenderBlock)successCallback
-                  fail:(RCTResponseSenderBlock)errorCallback) {
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         __block BOOL found = NO;
         __block Printer* selectedPrinter = nil;
@@ -66,21 +66,20 @@ RCT_EXPORT_METHOD(connectPrinter:(NSString *)inner_mac_address
             [[PrinterSDK defaultPrinterSDK] connectBT:selectedPrinter];
             // [[NSNotificationCenter defaultCenter] postNotificationName:@"BLEPrinterConnected" object:nil];
             m_printer = selectedPrinter;
-            successCallback(@[[NSString stringWithFormat:@"Connected to printer %@", selectedPrinter.name]]);
+            resolve(@[[NSString stringWithFormat:@"Connected to printer %@", selectedPrinter.name]]);
         } else {
             [NSException raise:@"Invalid connection" format:@"connectPrinter: Can't connect to printer %@", inner_mac_address];
         }
     } @catch (NSException *exception) {
-        errorCallback(@[exception.reason]);
+        reject(@[exception.reason]);
     }
 }
 
 RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
                   printerOptions:(NSDictionary *)options
-                  success:(RCTResponseSenderBlock)successCallback
-                  fail:(RCTResponseSenderBlock)errorCallback) {
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
-
         !m_printer ? [NSException raise:@"Invalid connection" format:@"Can't connect to printer"] : nil;
         if(![base64Qr  isEqual: @""]){
             NSString *result = [@"data:image/png;base64," stringByAppendingString:base64Qr];
@@ -105,9 +104,9 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
                 cut ? [[PrinterSDK defaultPrinterSDK] cutPaper] : nil;
             }
         }
-        successCallback(@[@true]);
+        resolve(@[@true]);
     } @catch (NSException *exception) {
-        errorCallback(@[exception.reason]);
+        reject(@[exception.reason]);
     }
 }
 
@@ -182,15 +181,16 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
     return paddedImage;
 }
 
-RCT_EXPORT_METHOD(closeConn:(RCTResponseSenderBlock)successCallback
-                  fail:(RCTResponseSenderBlock)errorCallback) {
+RCT_EXPORT_METHOD(closeConn
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         m_printer = nil;
         [[PrinterSDK defaultPrinterSDK] disconnect];
-        successCallback(@[@true]);
+        resolve(@[@true]);
     } @catch (NSException *exception) {
         // NSLog(@"%@", exception.reason);
-        errorCallback(@[exception.reason]);
+        reject(@[exception.reason]);
     }
 }
 
