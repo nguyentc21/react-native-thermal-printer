@@ -65,8 +65,7 @@ RCT_EXPORT_MODULE()
     return @[EVENT_SCANNER_RESOLVED, EVENT_SCANNER_RUNNING];
 }
 
-RCT_EXPORT_METHOD(init
-                  resolver:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(init:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     connected_ip = nil;
     is_scanning = NO;
@@ -115,7 +114,7 @@ RCT_EXPORT_METHOD(getDeviceList:(NSString *)prefixPrinterIp
         resolve(@[_printerArray]);
     } @catch (NSException *exception) {
         // NSLog(@"No connection");
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
     [[PrinterSDK defaultPrinterSDK] disconnect];
     is_scanning = NO;
@@ -153,7 +152,7 @@ RCT_EXPORT_METHOD(connectPrinter:(NSString *)host
         resolve(@[[NSString stringWithFormat:@"Connecting to printer %@", host]]);
 
     } @catch (NSException *exception) {
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 
@@ -189,7 +188,7 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
         }
         resolve(@[@true]);
     } @catch (NSException *exception) {
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 
@@ -277,7 +276,7 @@ RCT_EXPORT_METHOD(closeConn
         resolve(@[current_connected_ip]);
     } @catch (NSException *exception) {
         // NSLog(@"%@", exception.reason);
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 

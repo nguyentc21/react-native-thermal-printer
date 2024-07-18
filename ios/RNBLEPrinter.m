@@ -12,27 +12,25 @@
 
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(init
-                  resolver:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(init:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         _printerArray = [NSMutableArray new];
         m_printer = [[NSObject alloc] init];
         resolve(@[@"Init successful"]);
     } @catch (NSException *exception) {
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 
-RCT_EXPORT_METHOD(getDeviceList
-                  resolver:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(getDeviceList:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         !_printerArray ? [NSException raise:@"Null pointer exception" format:@"Must call init function first"] : nil;
         [[PrinterSDK defaultPrinterSDK] scanPrintersWithCompletion:^(Printer* printer){
-            [_printerArray addObject:printer];
-            NSMutableArray *mapped = [NSMutableArray arrayWithCapacity:[_printerArray count]];
-            [_printerArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [self->_printerArray addObject:printer];
+            NSMutableArray *mapped = [NSMutableArray arrayWithCapacity:[self->_printerArray count]];
+            [self->_printerArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 NSDictionary *dict = @{ @"device_name" : printer.name, @"inner_mac_address" : printer.UUIDString};
                 [mapped addObject:dict];
             }];
@@ -41,7 +39,7 @@ RCT_EXPORT_METHOD(getDeviceList
             resolve(@[uniquearray]);
         }];
     } @catch (NSException *exception) {
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 RCT_EXPORT_METHOD(stopScan) {
@@ -71,7 +69,7 @@ RCT_EXPORT_METHOD(connectPrinter:(NSString *)inner_mac_address
             [NSException raise:@"Invalid connection" format:@"connectPrinter: Can't connect to printer %@", inner_mac_address];
         }
     } @catch (NSException *exception) {
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 
@@ -106,7 +104,7 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
         }
         resolve(@[@true]);
     } @catch (NSException *exception) {
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 
@@ -181,8 +179,7 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
     return paddedImage;
 }
 
-RCT_EXPORT_METHOD(closeConn
-                  resolver:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(closeConn:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         m_printer = nil;
@@ -190,7 +187,7 @@ RCT_EXPORT_METHOD(closeConn
         resolve(@[@true]);
     } @catch (NSException *exception) {
         // NSLog(@"%@", exception.reason);
-        reject(@[exception.reason]);
+        reject(@[exception.name], @[exception.reason], exception);
     }
 }
 
