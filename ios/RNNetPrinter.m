@@ -73,14 +73,14 @@ RCT_EXPORT_METHOD(init:(RCTPromiseResolveBlock)resolve
     _printerArray = [NSMutableArray new];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handlePrinterConnectedNotification:) name:PrinterConnectedNotification object:nil];
     // [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleBLEPrinterConnectedNotification:) name:@"BLEPrinterConnected" object:nil];
-    resolver(@[@"Init successful"]);
+    resolve(@"Init successful");
 }
 
 RCT_EXPORT_METHOD(getDeviceList:(NSString *)prefixPrinterIp
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [self scan:prefixPrinterIp success:resolver fail:reject];
+        [self scan:prefixPrinterIp resolver:resolve rejecter:reject];
     });
 }
 
@@ -90,7 +90,7 @@ RCT_EXPORT_METHOD(getDeviceList:(NSString *)prefixPrinterIp
     @try {
         is_scanning = YES;
         is_need_stop_scanning = NO;
-        [self sendEventWithName:EVENT_SCANNER_RUNNING body:@YES];
+        // [self sendEventWithName:EVENT_SCANNER_RUNNING body:@YES];
         _printerArray = [NSMutableArray new];
 
         NSString *prefix = !prefixPrinterIp ? @"192.168.1" : prefixPrinterIp;
@@ -109,17 +109,17 @@ RCT_EXPORT_METHOD(getDeviceList:(NSString *)prefixPrinterIp
         NSArray *arrayWithoutDuplicates = [orderedSet array];
         _printerArray = (NSMutableArray *)arrayWithoutDuplicates;
 
-        [self sendEventWithName:EVENT_SCANNER_RESOLVED body:_printerArray];
+        // [self sendEventWithName:EVENT_SCANNER_RESOLVED body:_printerArray];
 
-        resolve(@[_printerArray]);
+        resolve(_printerArray);
     } @catch (NSException *exception) {
         // NSLog(@"No connection");
-        reject(@[exception.name], @[exception.reason], exception);
+        reject(exception.name, exception.reason, nil);
     }
     [[PrinterSDK defaultPrinterSDK] disconnect];
     is_scanning = NO;
     is_need_stop_scanning = NO;
-    [self sendEventWithName:EVENT_SCANNER_RUNNING body:@NO];
+    // [self sendEventWithName:EVENT_SCANNER_RUNNING body:@NO];
 }
 
 - (void)stopScan {
@@ -149,10 +149,11 @@ RCT_EXPORT_METHOD(connectPrinter:(NSString *)host
 
         connected_ip = host;
         // [[NSNotificationCenter defaultCenter] postNotificationName:@"NetPrinterConnected" object:nil];
-        resolve(@[[NSString stringWithFormat:@"Connecting to printer %@", host]]);
+        NSString *msg = [@"Connecting to printer " stringByAppendingString:host];
+        resolve(msg);
 
     } @catch (NSException *exception) {
-        reject(@[exception.name], @[exception.reason], exception);
+        reject(exception.name, exception.reason, nil);
     }
 }
 
@@ -186,9 +187,9 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
                 cut ? [[PrinterSDK defaultPrinterSDK] cutPaper] : nil;
             }
         }
-        resolve(@[@true]);
+        resolve(@true);
     } @catch (NSException *exception) {
-        reject(@[exception.name], @[exception.reason], exception);
+        reject(exception.name, exception.reason, nil);
     }
 }
 
@@ -265,18 +266,17 @@ RCT_EXPORT_METHOD(printImageBase64:(NSString *)base64Qr
     return paddedImage;
 }
 
-RCT_EXPORT_METHOD(closeConn
-                  resolver:(RCTPromiseResolveBlock)resolve
+RCT_EXPORT_METHOD(closeConn:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
         NSString * current_connected_ip = connected_ip;
         !connected_ip ? [NSException raise:@"Invalid connection" format:@"Can't connect to printer"] : nil;
         [[PrinterSDK defaultPrinterSDK] disconnect];
         connected_ip = nil;
-        resolve(@[current_connected_ip]);
+        resolve(current_connected_ip);
     } @catch (NSException *exception) {
         // NSLog(@"%@", exception.reason);
-        reject(@[exception.name], @[exception.reason], exception);
+        reject(exception.name, exception.reason, nil);
     }
 }
 

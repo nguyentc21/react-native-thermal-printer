@@ -102,8 +102,8 @@ const NetPrinter = {
         }
       : undefined,
 
-  getDeviceList: async (): Promise<INetPrinter[]> =>
-    await RNNetPrinter.getDeviceList(),
+  getDeviceList: async (prefixPrinterIp?: string): Promise<INetPrinter[]> =>
+    await RNNetPrinter.getDeviceList(prefixPrinterIp),
 
   stopScan:
     Platform.OS === 'ios'
