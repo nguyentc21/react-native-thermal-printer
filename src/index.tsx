@@ -8,7 +8,6 @@ const RNNetPrinter = NativeModules.RNNetPrinter;
 interface PrinterImageBase64Options {
   beep?: boolean;
   cut?: boolean;
-  tailingLine?: boolean;
   /** should be set = 576 for 80mm paper; = 384 for 56mm paper;
    */
   imageWidth: number;

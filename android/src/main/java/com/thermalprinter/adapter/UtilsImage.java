@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 
 public class UtilsImage {
+
     public static Bitmap getBitmapResized(Bitmap image, float decreaseSizeBy, int imageWidth, int imageHeight) {
         int imageWidthForResize = image.getWidth();
         int imageHeightForResize = image.getHeight();

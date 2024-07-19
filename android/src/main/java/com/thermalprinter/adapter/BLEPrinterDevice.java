@@ -8,8 +8,8 @@ import com.facebook.react.bridge.WritableMap;
 /**
  * Created by xiesubin on 2017/9/21.
  */
-
 public class BLEPrinterDevice implements PrinterDevice {
+
     private BluetoothDevice mBluetoothDevice;
     private BLEPrinterDeviceId mPrinterDeviceId;
 

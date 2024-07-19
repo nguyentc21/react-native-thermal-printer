@@ -16,11 +16,11 @@ public interface RNPrinterModule {
 
     @ReactMethod
     public void printImageBase64(
-        String base64,
-        int imageWidth,
-        int imageHeight,
-        boolean cut,
-        boolean beep,
-        Promise promise
-    ) ;
+            String base64,
+            int imageWidth,
+            int imageHeight,
+            boolean cut,
+            boolean beep,
+            Promise promise
+    );
 }

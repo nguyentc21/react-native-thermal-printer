@@ -6,8 +6,6 @@ import static com.thermalprinter.adapter.UtilsImage.recollectSlice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.util.Base64;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
@@ -16,34 +14,27 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.graphics.BitmapFactory;
 import androidx.annotation.RequiresApi;
 
 /**
  * Created by xiesubin on 2017/9/22.
  */
-
 public class NetPrinterAdapter implements PrinterAdapter {
+
     private static NetPrinterAdapter mInstance;
     private ReactApplicationContext mContext;
     private final String LOG_TAG = "RNNetPrinter";
     private NetPrinterDevice mNetDevice;
 
     // {TODO- support other ports later}
-
     private final int[] PRINTER_ON_PORTS = {9100};
     private static final String EVENT_SCANNER_RESOLVED = "scannerResolved";
     private static final String EVENT_SCANNER_RUNNING = "scannerRunning";
@@ -79,6 +70,7 @@ public class NetPrinterAdapter implements PrinterAdapter {
         promise.resolve();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public List<PrinterDevice> getDeviceList() {
         // promise.reject("do not need to invoke get device list for net
@@ -86,8 +78,6 @@ public class NetPrinterAdapter implements PrinterAdapter {
         // Use emitter instancee get devicelist to non block main thread
         // this.scan(promise);
         // return new ArrayList<>();
-        
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         try {
             WifiManager wifiManager = (WifiManager) mContext.getApplicationContext()
                     .getSystemService(Context.WIFI_SERVICE);
@@ -99,8 +89,9 @@ public class NetPrinterAdapter implements PrinterAdapter {
                     .parseInt(ipAddress.substring(ipAddress.lastIndexOf('.') + 1, ipAddress.length()));
 
             for (int i = 0; i <= 255; i++) {
-                if (i == suffix)
+                if (i == suffix) {
                     continue;
+                }
                 ArrayList<Integer> ports = getAvailablePorts(prefix + i);
                 if (!ports.isEmpty()) {
                     WritableMap payload = Arguments.createMap();
@@ -122,8 +113,9 @@ public class NetPrinterAdapter implements PrinterAdapter {
     private ArrayList<Integer> getAvailablePorts(String address) {
         ArrayList<Integer> ports = new ArrayList<>();
         for (int port : PRINTER_ON_PORTS) {
-            if (crunchifyAddressReachable(address, port))
+            if (crunchifyAddressReachable(address, port)) {
                 ports.add(port);
+            }
         }
         return ports;
     }
@@ -192,6 +184,7 @@ public class NetPrinterAdapter implements PrinterAdapter {
 
         }
     }
+
     @Override
     public void closeConnectionIfExists(Promise promise) {
         boolean isError = false;
@@ -217,13 +210,13 @@ public class NetPrinterAdapter implements PrinterAdapter {
 
     @Override
     public void printImageBase64(
-        final Bitmap imageUrl,
-        int imageWidth,
-        int imageHeight, 
-        boolean cut,
-        boolean beep,
-        Promise promise) {
-            
+            final Bitmap imageUrl,
+            int imageWidth,
+            int imageHeight,
+            boolean cut,
+            boolean beep,
+            Promise promise) {
+
         if (bitmapImage == null) {
             promise.reject("image not found");
             return;
@@ -249,8 +242,8 @@ public class NetPrinterAdapter implements PrinterAdapter {
                 // the printer will resume to normal text printing
                 printerOutputStream.write(SELECT_BIT_IMAGE_MODE);
                 // Set nL and nH based on the width of the image
-                printerOutputStream.write(new byte[]{(byte) (0x00ff & pixels[y].length)
-                        , (byte) ((0xff00 & pixels[y].length) >> 8)});
+                printerOutputStream.write(new byte[]{(byte) (0x00ff & pixels[y].length),
+                    (byte) ((0xff00 & pixels[y].length) >> 8)});
                 for (int x = 0; x < pixels[y].length; x++) {
                     // for each stripe, recollect 3 bytes (3 bytes = 24 bits)
                     printerOutputStream.write(recollectSlice(y, x, pixels));
@@ -278,9 +271,9 @@ public class NetPrinterAdapter implements PrinterAdapter {
             printerOutputStream.flush();
             promise.resolve("Successful!");
         } catch (IOException e) {
-            Log.e(LOG_TAG, "failed to print data");
+            // Log.e(LOG_TAG, "failed to print data");
             e.printStackTrace();
-            promise.reject(e)
+            promise.reject(e);
         }
     }
 }

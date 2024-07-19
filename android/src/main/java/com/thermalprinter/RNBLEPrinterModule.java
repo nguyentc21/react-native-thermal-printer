@@ -3,10 +3,8 @@ package com.thermalprinter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
-import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -23,7 +21,6 @@ import java.util.List;
 /**
  * Created by xiesubin on 2017/9/22.
  */
-
 public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RNPrinterModule {
 
     protected ReactApplicationContext reactContext;
@@ -34,7 +31,6 @@ public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RN
         super(reactContext);
         this.reactContext = reactContext;
     }
-
 
     @ReactMethod
     @Override
@@ -63,7 +59,7 @@ public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RN
             } else {
                 throw new Exception("No Device Found")
             }
-        } catch(Exception e){
+        } catch (Exception e) {
             promise.reject(e);
         }
     }
@@ -71,12 +67,12 @@ public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RN
     @ReactMethod
     @Override
     public void printImageBase64(
-        String base64,
-        int imageWidth,
-        int imageHeight,
-        boolean cut,
-        boolean beep,
-        Promise promise
+            String base64,
+            int imageWidth,
+            int imageHeight,
+            boolean cut,
+            boolean beep,
+            Promise promise
     ) {
         byte[] decodedString = Base64.decode(base64, Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);

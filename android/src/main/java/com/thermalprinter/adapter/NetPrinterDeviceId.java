@@ -3,8 +3,8 @@ package com.thermalprinter.adapter;
 /**
  * Created by xiesubin on 2017/9/21.
  */
-
 public class NetPrinterDeviceId extends PrinterDeviceId {
+
     private String host;
     private Integer port;
 
@@ -27,13 +27,21 @@ public class NetPrinterDeviceId extends PrinterDeviceId {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         NetPrinterDeviceId that = (NetPrinterDeviceId) o;
 
-        if (!host.equals(that.host)) return false;
+        if (!host.equals(that.host)) {
+            return false;
+        }
         return port.equals(that.port);
     }
 

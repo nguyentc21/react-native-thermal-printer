@@ -6,60 +6,47 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.net.URL;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import android.graphics.BitmapFactory;
+
 /**
  * Created by xiesubin on 2017/9/21.
  */
-
-public class BLEPrinterAdapter implements PrinterAdapter{
-
+public class BLEPrinterAdapter implements PrinterAdapter {
 
     private static BLEPrinterAdapter mInstance;
-
 
     private final String LOG_TAG = "RNBLEPrinter";
 
     private BluetoothDevice mBluetoothDevice;
     private BluetoothSocket mBluetoothSocket;
 
-
     private ReactApplicationContext mContext;
 
     private final static char ESC_CHAR = 0x1B;
-    private static final byte[] SELECT_BIT_IMAGE_MODE = { 0x1B, 0x2A, 33 };
-    private final static byte[] SET_LINE_SPACE_24 = new byte[] { ESC_CHAR, 0x33, 24 };
-    private final static byte[] SET_LINE_SPACE_32 = new byte[] { ESC_CHAR, 0x33, 32 };
-    private final static byte[] LINE_FEED = new byte[] { 0x0A };
-    private static final byte[] CENTER_ALIGN = { 0x1B, 0X61, 0X31 };
+    private static final byte[] SELECT_BIT_IMAGE_MODE = {0x1B, 0x2A, 33};
+    private final static byte[] SET_LINE_SPACE_24 = new byte[]{ESC_CHAR, 0x33, 24};
+    private final static byte[] SET_LINE_SPACE_32 = new byte[]{ESC_CHAR, 0x33, 32};
+    private final static byte[] LINE_FEED = new byte[]{0x0A};
+    private static final byte[] CENTER_ALIGN = {0x1B, 0X61, 0X31};
     private static final byte[] CMD_CUT = {0x1D, 0x56, 0};
     private static final byte[] BEEP_SOUND = new byte[]{27, 66, 2, 1};
 
-
-
-    private BLEPrinterAdapter(){}
+    private BLEPrinterAdapter() {
+    }
 
     public static BLEPrinterAdapter getInstance() {
-        if(mInstance == null) {
+        if (mInstance == null) {
             mInstance = new BLEPrinterAdapter();
         }
         return mInstance;
@@ -69,14 +56,14 @@ public class BLEPrinterAdapter implements PrinterAdapter{
     public void init(ReactApplicationContext reactContext, Promise promise) {
         this.mContext = reactContext;
         BluetoothAdapter bluetoothAdapter = getBTAdapter();
-        if(bluetoothAdapter == null) {
+        if (bluetoothAdapter == null) {
             promise.reject("No bluetooth adapter available");
             return;
         }
-        if(!bluetoothAdapter.isEnabled()) {
+        if (!bluetoothAdapter.isEnabled()) {
             promise.reject("bluetooth adapter is not enabled");
             return;
-        }else{
+        } else {
             promise.resolve();
         }
 
@@ -91,7 +78,7 @@ public class BLEPrinterAdapter implements PrinterAdapter{
         try {
             BluetoothAdapter bluetoothAdapter = getBTAdapter();
             List<PrinterDevice> printerDevices = new ArrayList<>();
-            if(bluetoothAdapter == null) {
+            if (bluetoothAdapter == null) {
                 throw new Exception("No bluetooth adapter available");
             }
             if (!bluetoothAdapter.isEnabled()) {
@@ -110,7 +97,7 @@ public class BLEPrinterAdapter implements PrinterAdapter{
     @Override
     public void selectDevice(PrinterDeviceId printerDeviceId, Promise promise) {
         BluetoothAdapter bluetoothAdapter = getBTAdapter();
-        if(bluetoothAdapter == null) {
+        if (bluetoothAdapter == null) {
             promise.reject("No bluetooth adapter available");
             return;
         }
@@ -118,26 +105,26 @@ public class BLEPrinterAdapter implements PrinterAdapter{
             promise.reject("bluetooth is not enabled");
             return;
         }
-        BLEPrinterDeviceId blePrinterDeviceId = (BLEPrinterDeviceId)printerDeviceId;
-        if(this.mBluetoothDevice != null){
-            if(this.mBluetoothDevice.getAddress().equals(blePrinterDeviceId.getInnerMacAddress()) && this.mBluetoothSocket != null){
+        BLEPrinterDeviceId blePrinterDeviceId = (BLEPrinterDeviceId) printerDeviceId;
+        if (this.mBluetoothDevice != null) {
+            if (this.mBluetoothDevice.getAddress().equals(blePrinterDeviceId.getInnerMacAddress()) && this.mBluetoothSocket != null) {
                 Log.v(LOG_TAG, "do not need to reconnect");
                 promise.resolve(new BLEPrinterDevice(this.mBluetoothDevice).toRNWritableMap());
                 return;
-            }else{
+            } else {
                 closeConnectionIfExists();
             }
         }
         Set<BluetoothDevice> pairedDevices = getBTAdapter().getBondedDevices();
 
         for (BluetoothDevice device : pairedDevices) {
-            if(device.getAddress().equals(blePrinterDeviceId.getInnerMacAddress())){
+            if (device.getAddress().equals(blePrinterDeviceId.getInnerMacAddress())) {
 
-                try{
+                try {
                     connectBluetoothDevice(device);
                     promise.resolve(new BLEPrinterDevice(this.mBluetoothDevice).toRNWritableMap());
                     return;
-                }catch (IOException e){
+                } catch (IOException e) {
                     e.printStackTrace();
                     promise.reject(e.getMessage());
                     return;
@@ -150,7 +137,7 @@ public class BLEPrinterAdapter implements PrinterAdapter{
         return;
     }
 
-    private void connectBluetoothDevice(BluetoothDevice device) throws IOException{
+    private void connectBluetoothDevice(BluetoothDevice device) throws IOException {
         UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
         this.mBluetoothSocket = device.createRfcommSocketToServiceRecord(uuid);
         this.mBluetoothSocket.connect();
@@ -160,33 +147,34 @@ public class BLEPrinterAdapter implements PrinterAdapter{
 
     @Override
     public void closeConnectionIfExists() {
-        try{
-            if(this.mBluetoothSocket != null){
+        try {
+            if (this.mBluetoothSocket != null) {
                 this.mBluetoothSocket.close();
                 this.mBluetoothSocket = null;
             }
-        }catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
-        if(this.mBluetoothDevice != null) {
+        if (this.mBluetoothDevice != null) {
             this.mBluetoothDevice = null;
         }
     }
+
     @Override
     public void closeConnectionIfExists(Promise promise) {
         boolean isError = false;
-        try{
-            if(this.mBluetoothSocket != null){
+        try {
+            if (this.mBluetoothSocket != null) {
                 this.mBluetoothSocket.close();
                 this.mBluetoothSocket = null;
             }
-        }catch(IOException e){
+        } catch (IOException e) {
             isError = true;
             e.printStackTrace();
         }
 
-        if(this.mBluetoothDevice != null) {
+        if (this.mBluetoothDevice != null) {
             this.mBluetoothDevice = null;
         }
         if (!isError) {
@@ -198,14 +186,14 @@ public class BLEPrinterAdapter implements PrinterAdapter{
 
     @Override
     public void printImageBase64(
-        final Bitmap imageUrl,
-        int imageWidth,
-        int imageHeight, 
-        boolean cut,
-        boolean beep,
-        Promise promise) {
+            final Bitmap imageUrl,
+            int imageWidth,
+            int imageHeight,
+            boolean cut,
+            boolean beep,
+            Promise promise) {
 
-        if(bitmapImage == null) {
+        if (bitmapImage == null) {
             promise.reject("image not found");
             return;
         }
@@ -230,8 +218,8 @@ public class BLEPrinterAdapter implements PrinterAdapter{
                 // the printer will resume to normal text printing
                 printerOutputStream.write(SELECT_BIT_IMAGE_MODE);
                 // Set nL and nH based on the width of the image
-                printerOutputStream.write(new byte[]{(byte)(0x00ff & pixels[y].length)
-                        , (byte)((0xff00 & pixels[y].length) >> 8)});
+                printerOutputStream.write(new byte[]{(byte) (0x00ff & pixels[y].length),
+                    (byte) ((0xff00 & pixels[y].length) >> 8)});
                 for (int x = 0; x < pixels[y].length; x++) {
                     // for each stripe, recollect 3 bytes (3 bytes = 24 bits)
                     printerOutputStream.write(recollectSlice(y, x, pixels));
@@ -259,8 +247,9 @@ public class BLEPrinterAdapter implements PrinterAdapter{
             printerOutputStream.flush();
             promise.resolve("Successful!");
         } catch (IOException e) {
-            Log.e(LOG_TAG, "failed to print data");
+            // Log.e(LOG_TAG, "failed to print data");
             e.printStackTrace();
+            promise.reject(e);
         }
     }
 }
