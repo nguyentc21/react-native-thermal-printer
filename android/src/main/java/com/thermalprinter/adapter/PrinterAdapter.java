@@ -5,11 +5,13 @@ import android.graphics.Bitmap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 
+import java.util.List;
+
 public interface PrinterAdapter {
 
     public void init(ReactApplicationContext reactContext, Promise promise);
 
-    public void getDeviceList(Promise promise);
+    public List<PrinterDevice> getDeviceList() throws Exception;
 
     public void selectDevice(PrinterDeviceId printerDeviceId, Promise promise);
 

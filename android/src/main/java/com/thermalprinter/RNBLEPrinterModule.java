@@ -57,7 +57,7 @@ public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RN
                 }
                 promise.resolve(pairedDeviceList);
             } else {
-                throw new Exception("No Device Found")
+                throw new Exception("No Device Found");
             }
         } catch (Exception e) {
             promise.reject(e);

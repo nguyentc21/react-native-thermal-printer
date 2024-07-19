@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.thermalprinter.adapter.NetPrinterAdapter;
 import com.thermalprinter.adapter.NetPrinterDeviceId;
 import com.thermalprinter.adapter.PrinterAdapter;
+import com.thermalprinter.adapter.PrinterDevice;
 
 import java.util.List;
 

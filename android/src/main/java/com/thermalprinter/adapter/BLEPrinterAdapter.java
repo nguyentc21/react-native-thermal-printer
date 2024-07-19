@@ -64,7 +64,7 @@ public class BLEPrinterAdapter implements PrinterAdapter {
             promise.reject("bluetooth adapter is not enabled");
             return;
         } else {
-            promise.resolve();
+            promise.resolve(true);
         }
 
     }
@@ -74,7 +74,7 @@ public class BLEPrinterAdapter implements PrinterAdapter {
     }
 
     @Override
-    public List<PrinterDevice> getDeviceList() {
+    public List<PrinterDevice> getDeviceList() throws Exception {
         try {
             BluetoothAdapter bluetoothAdapter = getBTAdapter();
             List<PrinterDevice> printerDevices = new ArrayList<>();
@@ -163,30 +163,24 @@ public class BLEPrinterAdapter implements PrinterAdapter {
 
     @Override
     public void closeConnectionIfExists(Promise promise) {
-        boolean isError = false;
         try {
             if (this.mBluetoothSocket != null) {
                 this.mBluetoothSocket.close();
                 this.mBluetoothSocket = null;
             }
+            if (this.mBluetoothDevice != null) {
+                this.mBluetoothDevice = null;
+            }
+            promise.resolve(true);
         } catch (IOException e) {
-            isError = true;
             e.printStackTrace();
-        }
-
-        if (this.mBluetoothDevice != null) {
-            this.mBluetoothDevice = null;
-        }
-        if (!isError) {
-            promise.resolve();
-        } else {
-            promise.reject();
+            promise.reject(e);
         }
     }
 
     @Override
     public void printImageBase64(
-            final Bitmap imageUrl,
+            final Bitmap bitmapImage,
             int imageWidth,
             int imageHeight,
             boolean cut,

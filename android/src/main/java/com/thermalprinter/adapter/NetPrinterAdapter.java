@@ -6,6 +6,7 @@ import static com.thermalprinter.adapter.UtilsImage.recollectSlice;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
@@ -67,12 +68,12 @@ public class NetPrinterAdapter implements PrinterAdapter {
     @Override
     public void init(ReactApplicationContext reactContext, Promise promise) {
         this.mContext = reactContext;
-        promise.resolve();
+        promise.resolve(true);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
-    public List<PrinterDevice> getDeviceList() {
+    public List<PrinterDevice> getDeviceList() throws Exception {
         // promise.reject("do not need to invoke get device list for net
         // printer");
         // Use emitter instancee get devicelist to non block main thread
@@ -82,7 +83,8 @@ public class NetPrinterAdapter implements PrinterAdapter {
             WifiManager wifiManager = (WifiManager) mContext.getApplicationContext()
                     .getSystemService(Context.WIFI_SERVICE);
             String ipAddress = ipToString(wifiManager.getConnectionInfo().getIpAddress());
-            WritableArray array = Arguments.createArray();
+            // WritableArray array = Arguments.createArray();
+            List<PrinterDevice> array = new ArrayList<>();
 
             String prefix = ipAddress.substring(0, ipAddress.lastIndexOf('.') + 1);
             int suffix = Integer
@@ -94,16 +96,16 @@ public class NetPrinterAdapter implements PrinterAdapter {
                 }
                 ArrayList<Integer> ports = getAvailablePorts(prefix + i);
                 if (!ports.isEmpty()) {
-                    WritableMap payload = Arguments.createMap();
+                    // WritableMap payload = Arguments.createMap();
 
-                    payload.putString("host", prefix + i);
-                    payload.putInt("port", 9100);
+                    // payload.putString("host", prefix + i);
+                    // payload.putInt("port", 9100);
 
-                    array.pushMap(payload);
+                    array.add(new NetPrinterDevice(prefix + i, 9100));
                 }
             }
             return array;
-        } catch (NullPointerException ex) {
+        } catch (Exception ex) {
             Log.i(LOG_TAG, "No connection");
             throw (ex);
         }
@@ -195,22 +197,17 @@ public class NetPrinterAdapter implements PrinterAdapter {
                 } catch (IOException e) {
                     isError = true;
                     e.printStackTrace();
+                    promise.reject(e);
                 }
             }
-
             this.mSocket = null;
-
         }
-        if (!isError) {
-            promise.resolve();
-        } else {
-            promise.reject();
-        }
+        promise.resolve(true);
     }
 
     @Override
     public void printImageBase64(
-            final Bitmap imageUrl,
+            final Bitmap bitmapImage,
             int imageWidth,
             int imageHeight,
             boolean cut,
