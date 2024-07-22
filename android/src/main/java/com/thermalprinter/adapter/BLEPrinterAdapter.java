@@ -74,23 +74,31 @@ public class BLEPrinterAdapter implements PrinterAdapter {
     }
 
     @Override
-    public List<PrinterDevice> getDeviceList() throws Exception {
+    // public List<PrinterDevice> getDeviceList() throws Exception {
+    public void getDeviceList(Promise promise) {
         try {
             BluetoothAdapter bluetoothAdapter = getBTAdapter();
             List<PrinterDevice> printerDevices = new ArrayList<>();
             if (bluetoothAdapter == null) {
-                throw new Exception("No bluetooth adapter available");
+                // throw new Exception("No bluetooth adapter available");
+                promise.reject("No bluetooth adapter available");
+                return;
             }
             if (!bluetoothAdapter.isEnabled()) {
-                throw new Exception("Bluetooth is not enabled");
+                // throw new Exception("Bluetooth is not enabled");
+                promise.reject("Bluetooth is not enabled");
+                return;
             }
             Set<BluetoothDevice> pairedDevices = getBTAdapter().getBondedDevices();
             for (BluetoothDevice device : pairedDevices) {
                 printerDevices.add(new BLEPrinterDevice(device));
             }
-            return printerDevices;
+            // return printerDevices;
+            promise.resolve(printerDevices);
+            return;
         } catch (Exception e) {
-            throw e;
+            // throw e;
+            promise.reject(e);
         }
     }
 

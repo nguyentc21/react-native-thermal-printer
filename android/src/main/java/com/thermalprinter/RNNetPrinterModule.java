@@ -42,17 +42,18 @@ public class RNNetPrinterModule extends ReactContextBaseJavaModule implements RN
     @ReactMethod
     @Override
     public void getDeviceList(Promise promise) {
-        try {
-            List<PrinterDevice> deviceList = this.adapter.getDeviceList();
-            promise.resolve(deviceList);
-        } catch (Exception ex) {
-            promise.reject(ex);
-        }
+        this.adapter.getDeviceList(promise);
+        // try {
+        //     List<PrinterDevice> deviceList = this.adapter.getDeviceList();
+        //     promise.resolve(deviceList);
+        // } catch (Exception ex) {
+        //     promise.reject(ex);
+        // }
     }
 
     @ReactMethod
     public void connectPrinter(String host, Integer port, Promise promise) {
-        adapter.selectDevice(NetPrinterDeviceId.valueOf(host, port), promise);
+        this.adapter.selectDevice(NetPrinterDeviceId.valueOf(host, port), promise);
     }
 
     @ReactMethod
@@ -69,7 +70,7 @@ public class RNNetPrinterModule extends ReactContextBaseJavaModule implements RN
         // String base64ImageProcessed = imageUrl.split(",")[1];
         byte[] decodedString = Base64.decode(base64, Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-        adapter.printImageBase64(decodedByte, imageWidth, imageHeight, cut, beep, promise);
+        this.adapter.printImageBase64(decodedByte, imageWidth, imageHeight, cut, beep, promise);
     }
 
     @Override

@@ -42,26 +42,27 @@ public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RN
     @ReactMethod
     @Override
     public void closeConn(Promise promise) {
-        adapter.closeConnectionIfExists(promise);
+        this.adapter.closeConnectionIfExists(promise);
     }
 
     @ReactMethod
     @Override
     public void getDeviceList(Promise promise) {
-        try {
-            List<PrinterDevice> printerDevices = adapter.getDeviceList();
-            WritableArray pairedDeviceList = Arguments.createArray();
-            if (printerDevices.size() > 0) {
-                for (PrinterDevice printerDevice : printerDevices) {
-                    pairedDeviceList.pushMap(printerDevice.toRNWritableMap());
-                }
-                promise.resolve(pairedDeviceList);
-            } else {
-                throw new Exception("No Device Found");
-            }
-        } catch (Exception e) {
-            promise.reject(e);
-        }
+        this.adapter.getDeviceList(promise);
+        // try {
+        //     List<PrinterDevice> printerDevices = adapter.getDeviceList();
+        //     WritableArray pairedDeviceList = Arguments.createArray();
+        //     if (printerDevices.size() > 0) {
+        //         for (PrinterDevice printerDevice : printerDevices) {
+        //             pairedDeviceList.pushMap(printerDevice.toRNWritableMap());
+        //         }
+        //         promise.resolve(pairedDeviceList);
+        //     } else {
+        //         throw new Exception("No Device Found");
+        //     }
+        // } catch (Exception e) {
+        //     promise.reject(e);
+        // }
     }
 
     @ReactMethod
@@ -76,12 +77,12 @@ public class RNBLEPrinterModule extends ReactContextBaseJavaModule implements RN
     ) {
         byte[] decodedString = Base64.decode(base64, Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-        adapter.printImageBase64(decodedByte, imageWidth, imageHeight, cut, beep, promise);
+        this.adapter.printImageBase64(decodedByte, imageWidth, imageHeight, cut, beep, promise);
     }
 
     @ReactMethod
     public void connectPrinter(String innerAddress, Promise promise) {
-        adapter.selectDevice(BLEPrinterDeviceId.valueOf(innerAddress), promise);
+        this.adapter.selectDevice(BLEPrinterDeviceId.valueOf(innerAddress), promise);
     }
 
     @Override

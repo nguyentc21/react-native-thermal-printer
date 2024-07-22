@@ -11,7 +11,8 @@ public interface PrinterAdapter {
 
     public void init(ReactApplicationContext reactContext, Promise promise);
 
-    public List<PrinterDevice> getDeviceList() throws Exception;
+    // public List<PrinterDevice> getDeviceList() throws Exception;
+    public void getDeviceList(Promise promise);
 
     public void selectDevice(PrinterDeviceId printerDeviceId, Promise promise);
 

@@ -9,12 +9,14 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.util.Log;
 
-import com.facebook.react.bridge.Arguments;
+// import com.facebook.react.bridge.Arguments;
 // import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.bridge.WritableNativeArray;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -71,44 +73,50 @@ public class NetPrinterAdapter implements PrinterAdapter {
         promise.resolve(true);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
-    public List<PrinterDevice> getDeviceList() throws Exception {
-        // promise.reject("do not need to invoke get device list for net
-        // printer");
-        // Use emitter instancee get devicelist to non block main thread
-        // this.scan(promise);
-        // return new ArrayList<>();
-        try {
-            WifiManager wifiManager = (WifiManager) mContext.getApplicationContext()
-                    .getSystemService(Context.WIFI_SERVICE);
-            String ipAddress = ipToString(wifiManager.getConnectionInfo().getIpAddress());
-            // WritableArray array = Arguments.createArray();
-            List<PrinterDevice> array = new ArrayList<>();
+    // public List<PrinterDevice> getDeviceList(Promise promise) {
+    public void getDeviceList(Promise promise) {
+        this.scan(promise);
+    }
 
-            String prefix = ipAddress.substring(0, ipAddress.lastIndexOf('.') + 1);
-            int suffix = Integer
-                    .parseInt(ipAddress.substring(ipAddress.lastIndexOf('.') + 1, ipAddress.length()));
+    private void scan(Promise promise) {
+        new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            @Override
+            public void run() {
+                try {
+                    WifiManager wifiManager = (WifiManager) mContext.getApplicationContext()
+                            .getSystemService(Context.WIFI_SERVICE);
+                    String ipAddress = ipToString(wifiManager.getConnectionInfo().getIpAddress());
+                    // WritableArray array = Arguments.createArray();
+                    // List<PrinterDevice> array = new ArrayList<>();
+                    WritableArray array = new WritableNativeArray();
 
-            for (int i = 0; i <= 255; i++) {
-                if (i == suffix) {
-                    continue;
-                }
-                ArrayList<Integer> ports = getAvailablePorts(prefix + i);
-                if (!ports.isEmpty()) {
-                    // WritableMap payload = Arguments.createMap();
+                    String prefix = ipAddress.substring(0, ipAddress.lastIndexOf('.') + 1);
+                    int suffix = Integer
+                            .parseInt(ipAddress.substring(ipAddress.lastIndexOf('.') + 1, ipAddress.length()));
 
-                    // payload.putString("host", prefix + i);
-                    // payload.putInt("port", 9100);
-
-                    array.add(new NetPrinterDevice(prefix + i, 9100));
+                    for (int i = 0; i <= 255; i++) {
+                        if (i == suffix) {
+                            continue;
+                        }
+                        ArrayList<Integer> ports = getAvailablePorts(prefix + i);
+                        if (!ports.isEmpty()) {
+                            WritableMap payload = new WritableNativeMap();
+                            payload.putString("host", prefix + i);
+                            payload.putInt("port", 9100);
+                            // array.add(new NetPrinterDevice(prefix + i, 9100));
+                            array.pushMap(payload);
+                        }
+                    }
+                    
+                    promise.resolve(array);
+                } catch (Exception ex) {
+                    Log.i(LOG_TAG, "No connection");
+                    promise.reject(ex);
                 }
             }
-            return array;
-        } catch (Exception ex) {
-            Log.i(LOG_TAG, "No connection");
-            throw (ex);
-        }
+        }).start();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
